@@ -1,0 +1,6 @@
+.idea/
+*.iml
+
+Gemfile.lock
+
+public/data.json
