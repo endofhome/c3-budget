@@ -1,6 +1,7 @@
 .idea/
 *.iml
 
-Gemfile.lock
+public/data-05-2017.json
+public/data-06-2017.json
+public/categories.json
 
-public/data.json
