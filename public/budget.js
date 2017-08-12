@@ -281,7 +281,7 @@ var yearOverview = c3.generate({
         json: amalgamatedJson(combineMonthData([budget.categories, budgetLastMonth.categories])),
         keys: {
             x: 'name',
-            value: ['monthly_budget', 'actual']
+            value: ['annual_budget', 'monthly_budget', 'actual']
         },
         type: 'bar',
         color: function (color, d) {
@@ -289,6 +289,8 @@ var yearOverview = c3.generate({
                 return '#cce5ff'
             } else if (d.id === 'monthly_budget') {
                 return '#cce5ff'
+            } else if (d.id === 'annual_budget') {
+                return 'gray'
             } else if (d.id) {
                 var monthlyBudget = amalgamatedJson(budget.categories)[d.index].monthly_budget;
                 return d.id === 'actual' && d.value > monthlyBudget ? '#ff0000' : '#33cc33';
