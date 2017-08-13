@@ -30,16 +30,16 @@ const _addMonthlyBudgetTotals = function(monthData, monthlyBudgetData) {
 const loadJsonFromFS = function() {
     let monthlyBudgetTotals;
 
-    loadFileSync(jsonFiles[0], function (response) {
+    loadFileSync(jsonFiles[0], function(response) {
         monthlyBudgetTotals = JSON.parse(response);
     });
 
-    loadFileSync(jsonFiles[1], function (response) {
+    loadFileSync(jsonFiles[1], function(response) {
         budgetLastMonth = JSON.parse(response);
         _addMonthlyBudgetTotals(budgetLastMonth, monthlyBudgetTotals)
     });
 
-    loadFileSync(jsonFiles[2], function (response) {
+    loadFileSync(jsonFiles[2], function(response) {
         budget = JSON.parse(response);
         _addMonthlyBudgetTotals(budget, monthlyBudgetTotals)
     });
