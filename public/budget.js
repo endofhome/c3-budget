@@ -1,4 +1,4 @@
-var jsonFiles = ["./annual-data-2017-2018.json", "./data-2017-05.json", "./data-2017-06.json"];
+var jsonFiles = ["./budgets/budget-2017-2018.json", "./actual-expenditure/actual-expenditure-2017-05.json", "./actual-expenditure/actual-expenditure-2017-06.json"];
 var numberOfMonths = jsonFiles.length;
 var budget;
 var budgetLastMonth;
