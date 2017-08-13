@@ -1,4 +1,4 @@
-var jsonFiles = ["./data-2017-05.json", "./data-2017-06.json"];
+var jsonFiles = ["./annual-data-2017-2018.json", "./data-2017-05.json", "./data-2017-06.json"];
 var numberOfMonths = jsonFiles.length;
 var budget;
 var budgetLastMonth;
@@ -16,13 +16,33 @@ var loadFileSync = function(file, callback) {
 };
 
 var loadJsonFromFS = function() {
-    loadFileSync(jsonFiles[1], function (response) {
-        budget = JSON.parse(response);
-    });
+    let monthlyBudgetTotals;
 
     loadFileSync(jsonFiles[0], function (response) {
-        budgetLastMonth = JSON.parse(response);
+        monthlyBudgetTotals = JSON.parse(response);
     });
+
+    loadFileSync(jsonFiles[1], function (response) {
+        budgetLastMonth = JSON.parse(response);
+        _addMonthlyBudgetTotals(budgetLastMonth, monthlyBudgetTotals)
+    });
+
+    loadFileSync(jsonFiles[2], function (response) {
+        budget = JSON.parse(response);
+        _addMonthlyBudgetTotals(budget, monthlyBudgetTotals)
+    });
+};
+
+var _addMonthlyBudgetTotals = function(monthData, monthlyBudgetData) {
+    monthData["categories"].forEach(category => {
+        var budgetDataForCategory = monthlyBudgetData["categories"]
+            .filter(cat => category.title === cat.title)[0];
+        category["data"].forEach(dataItem => {
+            var budgetDataForDataItem = budgetDataForCategory["data"]
+                .filter(item => item["name"] === dataItem["name"])[0];
+            dataItem["monthly_budget"] = budgetDataForDataItem["monthly_budget"];
+        });
+    })
 };
 
 function Category(name, binding, height) {
