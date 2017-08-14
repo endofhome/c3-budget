@@ -1,4 +1,5 @@
 require 'sinatra'
+require 'json'
 
 unrequired_paths = ['.', '..', '.gitkeep']
 
@@ -9,11 +10,11 @@ end
 get '/budgets' do
   Dir.entries('public/budgets')
       .select { |e| !unrequired_paths.include? e }
-      .map { |e| "<div>#{e}</div>" }
+      .to_json
 end
 
 get '/actual-expenditure' do
   Dir.entries('public/actual-expenditure')
       .select { |e| !unrequired_paths.include? e }
-      .map { |e| "<div>#{e}</div>" }
+      .to_json
 end
