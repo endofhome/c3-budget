@@ -1,19 +1,7 @@
-const jsonFiles = ["./budgets/budget-2017-2018.json", "./actual-expenditure/actual-expenditure-2017-05.json", "./actual-expenditure/actual-expenditure-2017-06.json"];
-const numberOfMonths = jsonFiles.length - 1;
-let budget;
-let budgetLastMonth;
-
-const loadFileSync = function(file, callback) {
-    const xhr = new XMLHttpRequest();
-    xhr.overrideMimeType("application/json");
-    xhr.open('GET', file, false);
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-            callback(xhr.responseText);
-        }
-    };
-    xhr.send(null);
-};
+const resourceLoader = new ResourceLoader();
+const budgetData = resourceLoader.loadSingleBudgetFile();
+const actualExpenditureData = resourceLoader.loadActualExpenditureFiles();
+const numberOfMonths = actualExpenditureData.length;
 
 const _addMonthlyBudgetTotals = function(monthData, monthlyBudgetData) {
     monthData["categories"].forEach(category => {
@@ -24,34 +12,21 @@ const _addMonthlyBudgetTotals = function(monthData, monthlyBudgetData) {
                 .filter(item => item["name"] === dataItem["name"])[0];
             dataItem["monthly_budget"] = budgetDataForDataItem["monthly_budget"];
         });
-    })
-};
-
-const loadJsonFromFS = function() {
-    let monthlyBudgetTotals;
-
-    loadFileSync(jsonFiles[0], function(response) {
-        monthlyBudgetTotals = JSON.parse(response);
-    });
-
-    loadFileSync(jsonFiles[1], function(response) {
-        budgetLastMonth = JSON.parse(response);
-        _addMonthlyBudgetTotals(budgetLastMonth, monthlyBudgetTotals)
-    });
-
-    loadFileSync(jsonFiles[2], function(response) {
-        budget = JSON.parse(response);
-        _addMonthlyBudgetTotals(budget, monthlyBudgetTotals)
     });
 };
 
+// set the last budget in the array to 'budget' and perhaps an array of 'previousBudgetMonths'
+// but maybe don't use the term 'budget'
+let budget = actualExpenditureData[0];
+_addMonthlyBudgetTotals(actualExpenditureData[0], budgetData);
+let budgetLastMonth = actualExpenditureData[1];
+_addMonthlyBudgetTotals(actualExpenditureData[1], budgetData);
 
 const _categoryData = function(title) {
-    const matchingCategory = budget.categories.filter(function (item) {
-        return item.title === title;
-    });
+    const matchingCategory = budget.categories.filter(item => item.title === title);
     return matchingCategory[0].data;
 };
+
 function Category(name, binding, height) {
     this.name = name;
     this.binding = binding;
@@ -160,7 +135,6 @@ const combineMonthData = function(categories) {
     return result;
 };
 
-loadJsonFromFS();
 const inYourHome = new Category("In your home", "#in-your-home", 1000);
 const insurance = new Category("Insurance", "#insurance");
 const eatsAndDrinks = new Category("Eats and drinks", "#eats-and-drinks");
