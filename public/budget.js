@@ -6,10 +6,10 @@ const numberOfMonths = actualExpenditureData.length;
 const _addMonthlyBudgetTotals = function(monthData, monthlyBudgetData) {
     monthData["categories"].forEach(category => {
         const budgetDataForCategory = monthlyBudgetData["categories"]
-            .filter(cat => category.title === cat.title)[0];
+            .find(cat => category.title === cat.title);
         category["data"].forEach(dataItem => {
             const budgetDataForDataItem = budgetDataForCategory["data"]
-                .filter(item => item["name"] === dataItem["name"])[0];
+                .find(item => item["name"] === dataItem["name"]);
             dataItem["monthly_budget"] = budgetDataForDataItem["monthly_budget"];
         });
     });
@@ -23,8 +23,7 @@ let budgetLastMonth = actualExpenditureData[1];
 _addMonthlyBudgetTotals(actualExpenditureData[1], budgetData);
 
 const _categoryData = function(title) {
-    const matchingCategory = budget.categories.filter(item => item.title === title);
-    return matchingCategory[0].data;
+    return budget.categories.find(item => item.title === title).data;
 };
 
 function Category(name, binding, height) {
@@ -178,7 +177,7 @@ const monthTotal = c3.generate({
             } else if (d.id === 'monthly_budget') {
                 return '#cce5ff'
             } else if (d.id) {
-                var monthlyBudget = monthlyTotal[d.index].monthly_budget;
+                const monthlyBudget = monthlyTotal[d.index].monthly_budget;
                 return d.id === 'actual' && d.value > monthlyBudget ? '#ff0000' : '#33cc33';
             }
         }
@@ -213,7 +212,7 @@ const monthlyOverview = c3.generate({
             } else if (d.id === 'monthly_budget') {
                 return '#cce5ff'
             } else if (d.id) {
-                var monthlyBudget = amalgamatedJson(budget.categories)[d.index].monthly_budget;
+                const monthlyBudget = amalgamatedJson(budget.categories)[d.index].monthly_budget;
                 return d.id === 'actual' && d.value > monthlyBudget ? '#ff0000' : '#33cc33';
             }
         }
@@ -250,7 +249,7 @@ const yearTotal = c3.generate({
             } else if (d.id === 'annual_budget') {
                 return 'gray'
             } else if (d.id) {
-                var monthlyBudget = _annualTotal()[d.index].monthly_budget;
+                const monthlyBudget = _annualTotal()[d.index].monthly_budget;
                 return d.id === 'actual' && d.value > (monthlyBudget * numberOfMonths) ? '#ff0000' : '#33cc33';
             }
         }
@@ -287,7 +286,7 @@ const yearOverview = c3.generate({
             } else if (d.id === 'annual_budget') {
                 return 'gray'
             } else if (d.id) {
-                var monthlyBudget = amalgamatedJson(budget.categories)[d.index].monthly_budget;
+                const monthlyBudget = amalgamatedJson(budget.categories)[d.index].monthly_budget;
                 return d.id === 'actual' && d.value > monthlyBudget ? '#ff0000' : '#33cc33';
             }
         }
