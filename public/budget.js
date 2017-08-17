@@ -13,14 +13,12 @@ const _addMonthlyBudgetTotals = function(monthData, monthlyBudgetData) {
             dataItem["monthly_budget"] = budgetDataForDataItem["monthly_budget"];
         });
     });
+    return monthData;
 };
 
-// set the last budget in the array to 'budget' and perhaps an array of 'previousBudgetMonths'
-// but maybe don't use the term 'budget'
-let budget = actualExpenditureData[0];
-_addMonthlyBudgetTotals(actualExpenditureData[0], budgetData);
-let budgetLastMonth = actualExpenditureData[1];
-_addMonthlyBudgetTotals(actualExpenditureData[1], budgetData);
+const budget = _addMonthlyBudgetTotals(actualExpenditureData[0], budgetData);
+const budgetLastMonth = _addMonthlyBudgetTotals(actualExpenditureData[1], budgetData);
+const budgetTwoMonthsAgo = _addMonthlyBudgetTotals(actualExpenditureData[2], budgetData);
 
 const _categoryData = function(title) {
     return budget.categories.find(item => item.title === title).data;
@@ -79,16 +77,16 @@ function Category(name, binding, height) {
 }
 
 
-const amalgamatedJson = function (array, name) {
+const amalgamatedJson = function(array, name) {
     const data = [];
-    array.forEach(function (item) {
+    array.forEach(item => {
         let budgetTotal = 0;
         let actualTotal = 0;
         let dataElement = item.data;
         if (!item.data) {
             dataElement = array
         }
-        dataElement.forEach(function (monthItem) {
+        dataElement.forEach(monthItem => {
             budgetTotal = budgetTotal + monthItem.monthly_budget;
             actualTotal = actualTotal + monthItem.actual;
         });
@@ -106,31 +104,44 @@ const amalgamatedJson = function (array, name) {
     return data
 };
 
-const combineMonthData = function(categories) {
+const combineMonthData = function(monthsData) {
     const result = [];
-    categories[0].forEach(function(category) {
-        result.push({
-            "title": category["title"],
-            "data": category["data"]
-        });
-        const lastEntry = result[result.length - 1];
-        const titleToFind = lastEntry["title"];
-        let nameToFind;
-        const findTitle = function (category) {
-            return category.title === titleToFind
-        };
-
-        const findName = function (dataItem) {
-            return dataItem.name === nameToFind
-        };
-        const correspondingCategory = categories[1].find(findTitle);
-        lastEntry["data"].forEach(function(dataItem) {
-            nameToFind = dataItem["name"];
-            const correspondingItem = correspondingCategory["data"].find(findName);
-            dataItem["monthly_budget"] += correspondingItem["monthly_budget"];
-            dataItem["actual"] += correspondingItem["actual"]
-        });
+    const firstMonthCopy = JSON.parse(JSON.stringify(monthsData[0]));
+    firstMonthCopy.forEach(mainCategory => {
+        const categoryData = mainCategory["data"].slice(0);
+        result.push(
+            {
+                "title": mainCategory["title"],
+                "data": categoryData
+            }
+        )
     });
+
+    const addMonthData = function(month) {
+        month.forEach(mainCategory => {
+            const titleToFind = mainCategory["title"];
+            let nameToFind;
+            const findTitle = function(category) {
+                return category.title === titleToFind
+            };
+
+            const findName = function(dataItem) {
+                return dataItem.name === nameToFind
+            };
+            const correspondingResultMainCategory = result.find(findTitle);
+            mainCategory["data"].forEach(category => {
+                nameToFind = category["name"];
+                const correspondingResultItem = correspondingResultMainCategory["data"].find(findName);
+                correspondingResultItem["actual"] += category["actual"];
+                correspondingResultItem["monthly_budget"] += category["monthly_budget"]
+            })
+        })
+    };
+
+    const secondMonthCopy = monthsData[1].slice(0);
+    addMonthData(secondMonthCopy);
+    const thirdMonthCopy = monthsData[1].slice(0);
+    addMonthData(thirdMonthCopy);
     return result;
 };
 
@@ -147,13 +158,15 @@ const bigOneOffs = new Category("Big one offs", "#big-one-offs");
 const oddsAndSods = new Category("Odds and sods", "#odds-and-sods");
 const monthOverview = amalgamatedJson(budget.categories);
 const lastMonthOverview = amalgamatedJson(budgetLastMonth.categories);
+const twoMonthsAgoOverview = amalgamatedJson(budgetTwoMonthsAgo.categories);
 const monthlyTotal = [amalgamatedJson(monthOverview, budget.month + " " + budget.year)[0]];
 const lastMonthlyTotal = [amalgamatedJson(lastMonthOverview, budgetLastMonth.month + " " + budgetLastMonth.year)[0]];
+const twoMonthsAgoMonthlyTotal = [amalgamatedJson(twoMonthsAgoOverview, budgetLastMonth.month + " " + budgetLastMonth.year)[0]];
 
 const _annualTotal = function () {
     const result = {};
     const monthlyBudget = monthlyTotal[0].monthly_budget;
-    result.actual = monthlyTotal[0].actual + lastMonthlyTotal[0].actual;
+    result.actual = monthlyTotal[0].actual + lastMonthlyTotal[0].actual + twoMonthsAgoMonthlyTotal[0].actual;
     result.monthly_budget = monthlyBudget * numberOfMonths;
     result.annual_budget = monthlyBudget * 12;
     result.name = "2017-2018";
@@ -272,7 +285,7 @@ const yearOverview = c3.generate({
     data: {
         labels: true,
         x: 'x',
-        json: amalgamatedJson(combineMonthData([budget.categories, budgetLastMonth.categories])),
+        json: amalgamatedJson(combineMonthData([budget.categories, budgetLastMonth.categories, budgetTwoMonthsAgo.categories])),
         keys: {
             x: 'name',
             value: ['annual_budget', 'monthly_budget', 'actual']
@@ -287,7 +300,7 @@ const yearOverview = c3.generate({
                 return 'gray'
             } else if (d.id) {
                 const monthlyBudget = amalgamatedJson(budget.categories)[d.index].monthly_budget;
-                return d.id === 'actual' && d.value > monthlyBudget ? '#ff0000' : '#33cc33';
+                return d.id === 'actual' && d.value > (monthlyBudget * numberOfMonths) ? '#ff0000' : '#33cc33';
             }
         }
     },
